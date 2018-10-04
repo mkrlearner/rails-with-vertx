@@ -2,27 +2,30 @@ package co.tala.atlas.rails;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.Launcher;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MainVerticle extends AbstractVerticle {
+
+  private void sayHello(RoutingContext routingContext) {
+    routingContext.response()
+      .putHeader("content-type", "application/json")
+      .setStatusCode(200)
+      .end("Hello, World!!!!!");
+  }
 
   @Override
   public void start(Future<Void> startFuture) throws Exception {
-    vertx.createHttpServer().requestHandler(req -> {
-      req.response()
-        .putHeader("content-type", "text/plain")
-        .end("Hello from Vert.x!");
-    }).listen(8080, http -> {
-      if (http.succeeded()) {
-        startFuture.complete();
-        System.out.println("HTTP server started on http://localhost:8080");
-      } else {
-        startFuture.fail(http.cause());
-      }
-    });
-  }
+    super.start();
 
-  public static void main(final String[] args) {
-    Launcher.executeCommand("run", MainVerticle.class.getName());
+    Router router = Router.router(vertx);
+    router.get("/api/hello")
+      .handler(this::sayHello);
+
+    vertx.createHttpServer()
+      .requestHandler(router::accept)
+      .listen(config().getInteger("http.port", 8080));
   }
 }
