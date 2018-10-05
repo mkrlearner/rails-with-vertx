@@ -5,24 +5,13 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.Embeddable;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
 @NoArgsConstructor
 @Embeddable
 @EqualsAndHashCode
 @ToString
 public class PersonName {
-    @NotNull
-    @Size(max = 40)
-    private String firstName;
-
-    @Size(max = 40)
-    private String middleName;
-
-    @NotNull
-    @Size(max = 40)
-    private String lastName;
+    private String firstName, middleName, lastName;
 
     public PersonName(String _firstName, String _middleName, String _lastName) {
         if (_firstName == null) throw new IllegalStateException("firstName should not be null");
@@ -32,7 +21,8 @@ public class PersonName {
         lastName = _lastName;
     }
 
-    public PersonName(String _firstName, String _lastName) {
-        this(_firstName, null, _lastName);
+    public PersonName copy() {
+        return new PersonName(firstName, middleName, lastName);
     }
+
 }

@@ -1,16 +1,19 @@
 package co.tala.atlas.rails.model;
 
-import co.tala.atlas.rails.model.value.PersonName;
+import co.tala.atlas.rails.event.PersonRenamed;
 import co.tala.atlas.rails.model.value.PersonId;
+import co.tala.atlas.rails.model.value.PersonName;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.Data;
+import org.springframework.data.domain.AbstractAggregateRoot;
 
 import javax.persistence.*;
 
 @Data
 @Entity
 @Table(name = "people")
-public class Person {
+public class Person extends AbstractAggregateRoot {
+
     @EmbeddedId
     @AttributeOverrides(value = {
         @AttributeOverride(name = "id", column = @Column(name = "id"))
@@ -27,7 +30,8 @@ public class Person {
     @JsonUnwrapped
     private PersonName name;
 
-    public void rename(Person p) {
-        this.setName(p.getName());
+    public void rename(PersonName p) {
+        this.setName(p.copy());
+        registerEvent(new PersonRenamed(this, this.getPersonId(), this.getName()));
     }
 }

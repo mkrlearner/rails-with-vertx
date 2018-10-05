@@ -38,6 +38,7 @@ ext {
   flywayVersion = '5.1.4'
   lombokVersion = '1.18.2'
   gsonVersion = '2.8.5'
+  jodaVersion = '2.10'
 }
 
 flyway {
