@@ -11,6 +11,7 @@ buildscript {
   }
   dependencies {
     classpath("org.springframework.boot:spring-boot-gradle-plugin:2.0.5.RELEASE")
+    classpath 'com.h2database:h2:1.4.197'
   }
 }
 
@@ -18,6 +19,7 @@ plugins {
   id 'java'
   id 'application'
   id 'com.github.johnrengelman.shadow' version '2.0.4'
+  id "org.flywaydb.flyway" version "5.1.4"
 }
 
 apply plugin: 'java'
@@ -32,11 +34,21 @@ ext {
   restAssuredVersion = '3.0.0'
   springBootVersion = '2.0.5.RELEASE'
   h2Version = '1.4.197'
+  mysqlConnectorVersion = '8.0.12'
+  flywayVersion = '5.1.4'
+  lombokVersion = '1.18.2'
+  gsonVersion = '2.8.5'
+}
+
+flyway {
+  url = 'jdbc:h2:file:./target/foobar'
+  user = 'sa'
 }
 
 repositories {
   mavenLocal()
   jcenter()
+  maven { url "https://repository.jboss.org/nexus/content/repositories/releases" }
 }
 
 group = 'co.tala.atlas'
@@ -59,20 +71,26 @@ dependencies {
   implementation "io.vertx:vertx-junit5:$vertxVersion"
   implementation "io.vertx:vertx-core:$vertxVersion"
   implementation "io.vertx:vertx-web:$vertxVersion"
-  compile "org.springframework.boot:spring-boot-starter-web"
   testCompile "junit:junit"
   testImplementation "io.vertx:vertx-junit5:$vertxVersion"
   testRuntime "org.junit.jupiter:junit-jupiter-engine:$junitJupiterEngineVersion"
   testCompile "io.rest-assured:rest-assured:$restAssuredVersion"
   testCompile "org.springframework.boot:spring-boot-starter-test:$springBootVersion"
-//  compile "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion"
+  compile "org.springframework.boot:spring-boot-starter-data-jpa:$springBootVersion"
   compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
-//  testCompile "com.h2database:h2:$h2Version"
+  compile "mysql:mysql-connector-java:$mysqlConnectorVersion"
+  compile "org.flywaydb:flyway-maven-plugin:$flywayVersion"
+  compile "org.projectlombok:lombok:$lombokVersion"
+  compile "com.google.code.gson:gson:$gsonVersion"
 }
 
 configurations {
   compile.exclude module: 'spring-boot-starter-tomcat'
   compile.exclude group: 'org.apache.tomcat'
+}
+
+processResources {
+  expand(project.properties)
 }
 
 shadowJar {

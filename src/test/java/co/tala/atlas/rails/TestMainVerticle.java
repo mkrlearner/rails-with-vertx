@@ -20,18 +20,4 @@ public class TestMainVerticle {
   void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
     vertx.deployVerticle(new MainVerticle(), testContext.succeeding(id -> testContext.completeNow()));
   }
-
-  @Test
-  @DisplayName("Should start a Web Server on port 8080")
-  @Timeout(value = 10, timeUnit = TimeUnit.SECONDS)
-  void start_http_server(Vertx vertx, VertxTestContext testContext) throws Throwable {
-    vertx.createHttpClient().getNow(8080, "localhost", "/", response -> testContext.verify(() -> {
-      assertTrue(response.statusCode() == 200);
-      response.handler(body -> {
-        assertTrue(body.toString().contains("Hello from Vert.x!"));
-        testContext.completeNow();
-      });
-    }));
-  }
-
 }
