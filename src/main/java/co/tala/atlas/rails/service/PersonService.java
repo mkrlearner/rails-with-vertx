@@ -29,7 +29,7 @@ public class PersonService {
         personRepository.deleteById(new PersonId(id));
     }
 
-    public void update(Long id, Person p) {
+    public void rename(Long id, Person p) {
         if (p == null) return;
         Person person = get(id);
         if (person == null) return;

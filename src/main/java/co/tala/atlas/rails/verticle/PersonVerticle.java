@@ -9,6 +9,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -20,6 +21,7 @@ import java.util.List;
 @Component
 public class PersonVerticle extends AbstractVerticle {
     public static final String GET_ALL_PEOPLE = "get.people.all";
+    public static final String GET_A_PERSON = "get.person.by.id";
 
     @Autowired
     private Gson gson;
@@ -30,21 +32,30 @@ public class PersonVerticle extends AbstractVerticle {
     @Override
     public void start() throws Exception {
         super.start();
-        vertx.eventBus()
-            .<String>consumer(GET_ALL_PEOPLE)
-            .handler(getAllPeopleService(personService));
+        vertx.eventBus().<String>consumer(GET_ALL_PEOPLE).handler(getAllPeopleService());
+        vertx.eventBus().<Long>consumer(GET_A_PERSON).handler(getPerson());
     }
 
-    private Handler<Message<String>> getAllPeopleService(PersonService service) {
+    private Handler<Message<Long>> getPerson() {
         return msg -> vertx.<String>executeBlocking(future -> {
-            try {
-                List<Person> all = service.getAll();
-                String people = gson.toJson(all);
-                future.complete(people);
-            } catch (Exception e) {
-                System.out.println("Failed to serialize result");
-                future.fail(e);
+            Long personId = msg.body();
+            Person person = personService.get(personId);
+            future.complete(gson.toJson(person));
+        }, result -> {
+            if (result.succeeded()) {
+                msg.reply(result.result());
+            } else {
+                msg.reply(result.cause()
+                    .toString());
             }
+        });
+    }
+
+    private Handler<Message<String>> getAllPeopleService() {
+        return msg -> vertx.<String>executeBlocking(future -> {
+            List<Person> all = personService.getAll();
+            String people = gson.toJson(all);
+            future.complete(people);
         }, result -> {
             if (result.succeeded()) {
                 msg.reply(result.result());

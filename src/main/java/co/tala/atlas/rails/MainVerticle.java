@@ -10,9 +10,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class MainVerticle extends AbstractVerticle {
 
-    private void sayHello(RoutingContext routingContext) {
+    private void getAllPeople(RoutingContext routingContext) {
         vertx.eventBus()
             .<String>send(PersonVerticle.GET_ALL_PEOPLE, "", result -> {
+                if (result.succeeded()) {
+                    routingContext.response()
+                        .putHeader("content-type", "application/json")
+                        .setStatusCode(200)
+                        .end(result.result()
+                            .body());
+                } else {
+                    routingContext.response()
+                        .setStatusCode(500)
+                        .end();
+                }
+            });
+    }
+
+    private void getAPerson(RoutingContext routingContext) {
+        Long personId = Long.parseLong(routingContext.request().getParam("id"));
+        vertx.eventBus()
+            .<String>send(PersonVerticle.GET_A_PERSON, personId, result -> {
                 if (result.succeeded()) {
                     routingContext.response()
                         .putHeader("content-type", "application/json")
@@ -32,8 +50,8 @@ public class MainVerticle extends AbstractVerticle {
         super.start();
 
         Router router = Router.router(vertx);
-        router.get("/api/hello")
-            .handler(this::sayHello);
+        router.get("/api/v1/people").handler(this::getAllPeople);
+        router.get("/api/v1/people/:id").handler(this::getAPerson);
 
         vertx.createHttpServer()
             .requestHandler(router::accept)
